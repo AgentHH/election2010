@@ -1,18 +1,6 @@
 #!/usr/bin/env python
-import urllib2, sys, time, BeautifulSoup, pickle, re, heapq, datetime
+import urllib2, sys, time, BeautifulSoup, re, heapq, datetime
 from operator import itemgetter
-
-propnames = {
-    "19": "Legalize Marijuana in CA, Regulate and Tax",
-    "20": "Redistricting of Congressional Districts",
-    "21": "State Park Funding. Vehicle License Surcharge.",
-    "22": "Prohibit State From Taking Some Local Funds",
-    "23": "Suspend Air Pollution Control Law (AB 32)",
-    "24": "Repeal Allowance of Lower Business Tax Liability",
-    "25": "Simple Majority Vote to Pass Budget",
-    "26": "2/3 Vote for Some State/Local Fees",
-    "27": "Eliminate State Redistricting Commission",
-}
 
 parties = {
     "Non":      ["Non-affiliated",        "[30;47m"],
@@ -25,8 +13,6 @@ parties = {
 }
 
 partyre = re.compile(r"(?P<name>.+) \((?P<party>[^)]+)\)$")
-
-pickler = pickle.Pickler(open("results.txt", "a"))
 
 def get_number(s):
     return long(s.replace(",", ""))
@@ -106,7 +92,7 @@ while 1:
                     bold = nametag.find("b")
                     if bold:
                         name = bold.contents[0]
-                        name = ''.join((name, ": ", propnames[name]))
+                        name = ''.join((name, ": ", nametag.contents[1].strip()))
                     else:
                         name = nametag.contents[0]
                     yes = get_number(prop.find("td", "propYTot").contents[0])
