@@ -18,6 +18,7 @@ def get_number(s):
     return long(s.replace(",", ""))
 
 sys.stdout.write("[H[J")
+sys.stdout.flush()
 while 1:
     try:
         f = None
@@ -29,7 +30,7 @@ while 1:
                 page = page + 1
                 sys.stdout.write("Failed to get page (%d) [1G" % (page))
                 sys.stdout.flush()
-                time.sleep(60)
+                time.sleep(5)
                 pass
         #f = open("example.html")
         #f = open("values.html")
