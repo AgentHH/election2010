@@ -31,15 +31,19 @@ pickler = pickle.Pickler(open("results.txt", "a"))
 def get_number(s):
     return long(s.replace(",", ""))
 
+sys.stdout.write("[H[J")
 while 1:
     try:
         f = None
+        page = 0
         while f == None:
             try:
                 f = urllib2.urlopen("http://vote.sos.ca.gov/returns/all-state/")
             except:
-                sys.stdout.write("Failed to get page[0F")
-                time.sleep(5)
+                page = page + 1
+                sys.stdout.write("Failed to get page (%d) [1G" % (page))
+                sys.stdout.flush()
+                time.sleep(60)
                 pass
         #f = open("example.html")
         #f = open("values.html")
@@ -47,7 +51,10 @@ while 1:
         dom = BeautifulSoup.BeautifulSoup(stuff)
 
         reporting = dom.find("div", "Reporting").contents
-        print "\n".join((reporting[0], reporting[2]))
+        ts = [reporting[0], reporting[2]]
+
+        cs = []
+        ps = []
 
         for race in dom.findAll("div", "party-map-div"):
             (title,) = race.find("a").contents
@@ -60,7 +67,7 @@ while 1:
             if len(candidates) == 0 and len(props) == 0:
                 print "no candidates or props for %s, uh oh" % (title)
             if len(candidates):
-                print "%s:" % (title)
+                cs += ["%s:" % (title)]
                 c = {}
                 for candidate in candidates:
                     garbage = candidate.find("td", "candName").contents[0]
@@ -72,11 +79,10 @@ while 1:
                     party = m.group("party")
 
                     votes = get_number(candidate.find("td", "candVotes").contents[0])
-                    #print "    %s%s[0m has %d votes" % (parties[party][1], name, votes)
                     c[name] = (votes, party)
                 totalvotes = sum([x[0] for x in c.values()])
                 if not totalvotes:
-                    print "    NO RESULTS"
+                    cs += ["    NO RESULTS"]
                     continue
                 stuff = heapq.nlargest(2, c.iteritems(), itemgetter(1))
                 restvotes = totalvotes - sum([x[1][0] for x in stuff])
@@ -87,14 +93,14 @@ while 1:
                     per = float(v) / totalvotes * 100
                     perint = int(per % 100)
                     perdec = int((per * 10) % 10)
-                    print "    %s%3d.%d % 8d %s[0m" % (parties[p][1], perint, perdec, v, n)
+                    cs += ["    %s%3d.%d % 8d %s[0m" % (parties[p][1], perint, perdec, v, n)]
                 if restvotes:
                     per = float(restvotes) / totalvotes * 100
                     perint = int(per % 100)
                     perdec = int((per * 10) % 10)
-                    print "    %3d.%d % 8d (all others)" % (perint, perdec, restvotes)
+                    cs += ["    %3d.%d % 8d (all others)" % (perint, perdec, restvotes)]
             else:
-                print "%s:" % (title)
+                ps += ["%s:" % (title)]
                 for prop in props:
                     nametag = prop.find("td", "propName")
                     bold = nametag.find("b")
@@ -122,9 +128,23 @@ while 1:
                         perint = int(per % 100)
                         perdec = int((per * 10) % 10)
                         diff = a - b
-                        print "    %s %3d.%d  +%8d  %s[0m" % (c, perint, perdec, diff, name)
+                        ps += ["    %s %3d.%d  +%8d  %s[0m" % (c, perint, perdec, diff, name)]
                     else:
-                        print "    NO RESULTS          %s" % (name)
+                        ps += ["    NO RESULTS          %s" % (name)]
+
+        sys.stdout.write("[H[J")
+        for line in ts:
+            sys.stdout.write("".join(("[40G", line, "\n")))
+        sys.stdout.write("[5E")
+        for line in ps:
+            sys.stdout.write("".join(("[40G", line, "\n")))
+        sys.stdout.write("[H")
+        for line in cs:
+            sys.stdout.write("".join((line, "\n")))
+        sys.stdout.flush()
+        #print ts
+        #print cs
+        #print ps
     except:
 #        print("error")
         raise
